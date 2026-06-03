@@ -2,7 +2,6 @@ import http from "node:http";
 import { createApiClient } from "./modules/ApiClient.js";
 import { createCollectionManager } from "./modules/CollectionManager.js";
 import { apiConfig, savedItemsFilePath } from "./modules/config.js";
-import { getOrCreateVisitorId } from "./modules/cookieUtils.js";
 import { createFileStorage } from "./modules/fileStorage.js";
 import { createIdGenerator, getHighestIdNumber } from "./modules/idGenerator.js";
 import { getPathAndQuery, parseJsonBody } from "./modules/requestUtils.js";
@@ -39,7 +38,6 @@ const availableRoutes = [
   "GET /items/:id",
   "PATCH /items/:id",
   "DELETE /items/:id",
-  "GET /stats",
 ];
 
 function sendLoggedJson(req, res, statusCode, data) {
@@ -58,10 +56,6 @@ export async function startServer(port = 3000) {
   const generateItemId = createIdGenerator(
     "ITEM",
     getHighestIdNumber(existingItems, "id", "ITEM"),
-  );
-  const generateVisitorId = createIdGenerator(
-    "VIS",
-    getHighestIdNumber(existingItems, "userId", "VIS"),
   );
 
   const apiClient = createApiClient(apiConfig);
@@ -85,8 +79,6 @@ export async function startServer(port = 3000) {
         return;
       }
 
-      const visitorId = getOrCreateVisitorId(req, res, generateVisitorId);
-
       if (req.method === "GET" && pathname === "/") {
         sendLoggedJson(req, res, 200, {
           success: true,
@@ -103,7 +95,6 @@ export async function startServer(port = 3000) {
         sendLoggedJson(req, res, 200, {
           success: true,
           message: "Server is active",
-          visitorId,
         });
         return;
       }
@@ -143,10 +134,7 @@ export async function startServer(port = 3000) {
 
       if (req.method === "POST" && pathname === "/items") {
         const body = await parseJsonBody(req);
-        const item = await collectionManager.createItem({
-          ...body,
-          userId: visitorId,
-        });
+        const item = await collectionManager.createItem(body);
 
         sendLoggedJson(req, res, 201, {
           success: true,
@@ -158,10 +146,7 @@ export async function startServer(port = 3000) {
 
       if (req.method === "POST" && pathname === "/items/import") {
         const body = await parseJsonBody(req);
-        const item = await collectionManager.importItemFromExternalApi({
-          ...body,
-          userId: visitorId,
-        });
+        const item = await collectionManager.importItemFromExternalApi(body);
 
         sendLoggedJson(req, res, 201, {
           success: true,
@@ -172,10 +157,7 @@ export async function startServer(port = 3000) {
       }
 
       if (req.method === "GET" && pathname === "/items") {
-        const items = collectionManager.getAllItems({
-          ...getFilters(query),
-          userId: visitorId,
-        });
+        const items = collectionManager.getAllItems(getFilters(query));
 
         sendLoggedJson(req, res, 200, {
           success: true,
@@ -187,7 +169,7 @@ export async function startServer(port = 3000) {
       const itemId = getItemIdFromPath(pathname);
 
       if (req.method === "GET" && itemId) {
-        const item = collectionManager.getItemById(itemId, visitorId);
+        const item = collectionManager.getItemById(itemId);
 
         sendLoggedJson(req, res, 200, {
           success: true,
@@ -198,7 +180,7 @@ export async function startServer(port = 3000) {
 
       if (req.method === "PATCH" && itemId) {
         const body = await parseJsonBody(req);
-        const item = await collectionManager.updateItem(itemId, body, visitorId);
+        const item = await collectionManager.updateItem(itemId, body);
 
         sendLoggedJson(req, res, 200, {
           success: true,
@@ -209,22 +191,12 @@ export async function startServer(port = 3000) {
       }
 
       if (req.method === "DELETE" && itemId) {
-        const deletedItem = await collectionManager.deleteItem(itemId, visitorId);
+        const deletedItem = await collectionManager.deleteItem(itemId);
 
         sendLoggedJson(req, res, 200, {
           success: true,
           message: "Item deleted successfully",
           data: deletedItem,
-        });
-        return;
-      }
-
-      if (req.method === "GET" && pathname === "/stats") {
-        const stats = collectionManager.getStats(visitorId);
-
-        sendLoggedJson(req, res, 200, {
-          success: true,
-          data: stats,
         });
         return;
       }

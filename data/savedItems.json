@@ -1,7 +1,6 @@
 [
   {
     "id": "ITEM-1",
-    "userId": "VIS-1",
     "sourceApi": "Manual",
     "itemType": "manual",
     "externalId": null,

@@ -1,109 +1,119 @@
-# פרויקט מסכם שבוע 2: מרכז CRUD ל־Public APIs
+# הנחיות תלמידים: פרויקט תרגול Async JavaScript
 
 ## מטרת הפרויקט
 
-בפרויקט הזה תבנו שרת Backend קטן ב־Node.js שמתחבר ל־Public API חיצוני, שולף ממנו מידע, ומאפשר לנהל אוסף מקומי של פריטים.
+בפרויקט הזה תבנו שרת Node.js קטן שמתרגל את הנושאים שנלמדו במצגות:
 
-המערכת צריכה לאפשר:
-
-- חיפוש מידע ב־API חיצוני.
-- שמירת פריטים מקומית.
-- יצירת פריטים ידנית.
-- קריאה, עדכון ומחיקה של פריטים.
-- שמירה לקובץ JSON.
-- שימוש ב־Cookies כדי לזהות מבקר בין בקשות.
-- החזרת תשובות JSON עם status codes מתאימים.
-
-הפרויקט הוא Backend בלבד. אין לבנות UI.
-
----
-
-## כללי חובה
-
-- מותר לבחור **API אחד בלבד** מתוך חמשת ה־APIs שמופיעים במסמך הזה.
-- אין להשתמש ב־API אחר.
-- אין להוסיף API נוסף לרשימה.
-- אין להשתמש ב־Express.
-- אין לבנות HTML, CSS, React או UI בדפדפן.
-- אין להשתמש ב־`readFileSync` או `writeFileSync`.
-- יש להשתמש ב־`fetch` לקריאה ל־API החיצוני.
-- יש להשתמש ב־`fs/promises` לשמירה וקריאה מקובץ.
-- יש להשתמש ב־`async/await` ו־`try/catch`.
-- יש להחזיר תשובות JSON בלבד מהשרת.
-- הקוד צריך להיות מחולק לקבצים ומודולים.
-
----
-
-## טכנולוגיות נדרשות
-
-- Node.js
-- JavaScript
-- ES Modules
-- `node:http`
-- `node:url`
-- `node:fs/promises`
+- Single Thread
+- Call Stack
+- Event Loop
+- Blocking ו־Non-Blocking
+- Callbacks
+- Promises
 - `fetch`
-- JSON
-- `npm start`
+- `async/await`
+- `try/catch`
 
----
+המטרה היא להבין איך JavaScript מטפל בפעולות שלוקחות זמן בלי לעצור את כל הקוד.
 
-## בחירת API
+## מה צריך לבנות
 
-בחרו **אחד בלבד** מתוך חמשת ה־APIs הבאים:
+שרת Node.js שמבצע שלושה דברים מרכזיים:
 
-| API | תחום | שימוש אפשרי | חיפוש או רשימה | פריט בודד | הערה |
-| --- | --- | --- | --- | --- | --- |
-| JSONPlaceholder | פוסטים / משימות דמו | אוסף פוסטים או משימות | `GET /posts`, `GET /posts?userId=1` | `GET /posts/1` | API דמו. פעולות כתיבה לא נשמרות בשרת החיצוני. |
-| Open Library | ספרים | רשימת קריאה | `GET /search.json?q=dune` | `GET /works/OL45883W.json` | מומלץ לשמור מזהה work ללא `/works/`. |
-| REST Countries | מדינות | אוסף מדינות או יעדים | `GET /name/israel?fields=...` | `GET /alpha/IL?fields=...` | מומלץ להשתמש ב־`fields` כדי לקבל JSON קטן וברור. |
-| Nager.Date | חגים ציבוריים | אוסף חגים ותאריכים | `GET /publicholidays/2026/US` | אין endpoint ישיר לחג בודד | מייבאים מתוך תוצאת החיפוש. |
-| Hebcal | לוח שנה יהודי | אוסף תאריכים, פרשות או לימוד יומי | `GET /hebcal?...` | אין endpoint ישיר לאירוע בודד | מייבאים מתוך תוצאת החיפוש. |
+1. קורא מידע חיצוני מ־JSONPlaceholder בעזרת `fetch`.
+2. שומר פריטים מקומיים בקובץ JSON בעזרת `fs/promises`.
+3. קורא JSON body מתוך בקשות HTTP בעזרת Callbacks ו־Promise.
 
-### קישורי תיעוד
+הפרויקט הוא Backend בלבד ונבדק דרך `curl`, Postman או Insomnia.
 
-- JSONPlaceholder: `https://jsonplaceholder.typicode.com/`
-- Open Library: `https://openlibrary.org/dev/docs/api/search`
-- REST Countries: `https://restcountries.com/`
-- Nager.Date: `https://date.nager.at/api`
-- Hebcal: `https://www.hebcal.com/home/developer-apis`
+## נושאי חובה בקוד
 
----
+### Callbacks
 
-## דרישות API חיצוני
+צריך להשתמש ב־Callbacks כדי לקרוא body מתוך `req`:
 
-יש לממש רכיב שאחראי על עבודה מול ה־API החיצוני.
+```js
+req.on("data", callback);
+req.on("end", callback);
+req.on("error", callback);
+```
 
-הרכיב צריך לדעת לבצע:
+### Promises
 
-- חיפוש פריטים לפי query.
-- שליפת פריט בודד לפי מזהה, אם ה־API תומך בזה.
-- נרמול של פריט חיצוני למבנה אחיד שהשרת המקומי יודע לעבוד איתו.
+צריך להשתמש ב־Promise לפחות בפונקציה שמפענחת JSON body:
 
-המבנה המנורמל צריך לכלול לפחות:
+```js
+function parseJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    // callbacks
+  });
+}
+```
 
-- `externalId`
-- `title`
-- `description`
-- `sourceUrl`, אם קיים קישור מתאים
-- `rawData`, כדי לשמור את המידע המקורי שהגיע מה־API
+### async/await
 
-אם ה־API שבחרתם לא תומך בשליפת פריט בודד לפי ID, צריך:
+צריך להשתמש ב־`async/await` בקריאות שיכולות לקחת זמן:
 
-- להסביר זאת ב־README של ההגשה.
-- לאפשר ייבוא מתוך פריט מלא שחזר מחיפוש.
+- קריאה ל־API חיצוני.
+- קריאה מקובץ.
+- כתיבה לקובץ.
+- טיפול בבקשות שמחכות לנתונים.
 
----
+### try/catch
 
-## מודל פריט מקומי
+צריך להשתמש ב־`try/catch` סביב פעולות אסינכרוניות שעלולות להיכשל:
 
-כל פריט שנשמר במערכת המקומית צריך לכלול לפחות:
+- `fetch`
+- `response.json()`
+- קריאה וכתיבה לקובץ
+- פענוח JSON body
+
+### Non-Blocking
+
+אין להשתמש ב:
+
+```js
+readFileSync;
+writeFileSync;
+```
+
+צריך להשתמש ב:
+
+```js
+fs/promises;
+fetch;
+async/await;
+```
+
+## API חיצוני
+
+הפרויקט משתמש ב־JSONPlaceholder בלבד:
+
+```txt
+https://jsonplaceholder.typicode.com/
+```
+
+צריך לתמוך ב:
+
+```txt
+GET /posts
+GET /posts/:id
+```
+
+בשרת המקומי, החיפוש מתבצע דרך:
+
+```txt
+GET /external/search?query=...
+```
+
+## מבנה פריט מקומי
+
+כל פריט מקומי צריך לכלול:
 
 - `id`
-- `userId`
 - `sourceApi`
 - `itemType`
-- `externalId`, אם הפריט הגיע מ־API חיצוני
+- `externalId`
 - `title`
 - `description`
 - `status`
@@ -114,398 +124,167 @@
 - `createdAt`
 - `updatedAt`
 
-### ערכי status מותרים
-
-השתמשו רק בערכים הבאים:
+ערכי `status` מותרים:
 
 - `saved`
 - `in_progress`
 - `done`
 - `archived`
 
-### priority
-
 `priority` חייב להיות מספר שלם בין `1` ל־`5`.
 
----
-
-## שמירה לקובץ
-
-הפריטים המקומיים צריכים להישמר בקובץ JSON.
-
-דרישות:
-
-- כאשר השרת עולה, הוא טוען את הפריטים מהקובץ.
-- אם הקובץ לא קיים או ריק, מתחילים ממערך ריק.
-- כל יצירה של פריט נשמרת לקובץ.
-- כל עדכון של פריט נשמר לקובץ.
-- כל מחיקה של פריט נשמרת לקובץ.
-- יש להשתמש ב־`fs/promises`.
-
----
-
-## Cookies וזיהוי מבקר
-
-השרת צריך להשתמש ב־Cookie בשם:
-
-```txt
-visitorId
-```
-
-בכל בקשה:
-
-1. אם קיים `visitorId`, משתמשים בו.
-2. אם לא קיים `visitorId`, יוצרים מזהה חדש.
-3. מחזירים את ה־Cookie בתשובה עם `Set-Cookie`.
-4. שומרים פריטים עם ה־`userId` של אותו מבקר.
-5. מחזירים לכל מבקר רק את הפריטים שלו.
-
----
-
-## נתיבי HTTP נדרשים
+## נתיבים נדרשים
 
 | Method | Path | תיאור |
 | --- | --- | --- |
-| `GET` | `/` | הודעת פתיחה ורשימת נתיבים זמינים |
-| `GET` | `/health` | בדיקת תקינות לשרת |
-| `GET` | `/api-info` | מידע כללי על ה־API שנבחר |
+| `GET` | `/` | מידע כללי ורשימת נתיבים |
+| `GET` | `/health` | בדיקת תקינות |
+| `GET` | `/api-info` | מידע על JSONPlaceholder |
 | `GET` | `/external/search?query=...` | חיפוש ב־API החיצוני |
 | `POST` | `/items` | יצירת פריט ידני |
-| `POST` | `/items/import` | ייבוא פריט מה־API החיצוני |
-| `GET` | `/items` | קריאת כל הפריטים של המבקר הנוכחי |
+| `POST` | `/items/import` | ייבוא פריט מתוך JSONPlaceholder |
+| `GET` | `/items` | קריאת כל הפריטים המקומיים |
 | `GET` | `/items/:id` | קריאת פריט אחד |
 | `PATCH` | `/items/:id` | עדכון פריט |
 | `DELETE` | `/items/:id` | מחיקת פריט |
-| `GET` | `/stats` | סטטיסטיקות על הפריטים של המבקר הנוכחי |
 
-כל נתיב שלא קיים צריך להחזיר `404`.
+## דרישות לפי קבצים
 
----
+### `main.js`
 
-## Query Params
+מפעיל את השרת.
 
-יש לתמוך ב־query params לפחות במקומות הבאים:
+### `server.js`
 
-### חיפוש חיצוני
+אחראי על:
 
-```txt
-GET /external/search?query=...
-```
+- יצירת שרת עם `node:http`.
+- קריאת הנתיב וה־method.
+- קריאת query params.
+- קריאת JSON body כשצריך.
+- הפעלת פעולות אסינכרוניות.
+- החזרת JSON.
+- טיפול בשגיאות.
 
-### סינון פריטים מקומיים
+### `modules/ApiClient.js`
 
-```txt
-GET /items?status=saved
-GET /items?tag=travel
-GET /items?priority=3
-GET /items?search=text
-```
+אחראי על:
 
-אפשר לתמוך בכמה סינונים יחד.
+- קריאה ל־JSONPlaceholder עם `fetch`.
+- בדיקת `response.ok`.
+- קריאת JSON עם `await response.json()`.
+- הפיכת פוסט חיצוני למבנה אחיד.
 
----
+### `modules/CollectionManager.js`
 
-## Body בבקשות
+אחראי על:
 
-יש לקרוא JSON body בבקשות:
+- טעינת פריטים מהקובץ.
+- שמירת פריטים לקובץ.
+- יצירת פריט ידני.
+- ייבוא פריט חיצוני.
+- קריאה, עדכון ומחיקה של פריטים.
+- ולידציה של `title`, `status`, `priority` ו־`tags`.
 
-- `POST /items`
-- `POST /items/import`
-- `PATCH /items/:id`
+### `modules/fileStorage.js`
 
-אם ה־JSON לא תקין, יש להחזיר `400 Bad Request`.
+אחראי על קריאה וכתיבה לקובץ בעזרת `fs/promises`.
 
----
+### `modules/requestUtils.js`
 
-## דרישות CRUD
+אחראי על:
 
-### Create
-
-יש לתמוך לפחות ביצירת פריט ידנית דרך:
-
-```txt
-POST /items
-```
-
-בנוסף, יש לתמוך בייבוא פריט מתוך ה־API החיצוני דרך:
-
-```txt
-POST /items/import
-```
-
-### Read
-
-יש לתמוך ב:
-
-- קריאת כל הפריטים של המבקר הנוכחי.
-- קריאת פריט בודד לפי `id`.
-- סינון לפי status, tag, priority או search.
-
-### Update
-
-יש לתמוך בעדכון שדות מותרים בלבד.
-
-שדות שאסור לעדכן:
-
-- `id`
-- `userId`
-- `createdAt`
-
-### Delete
-
-יש לתמוך במחיקת פריט לפי `id`.
-
-אם הפריט לא קיים, יש להחזיר `404`.
-
----
-
-## ולידציה
-
-### יצירת פריט
-
-- `title` חובה.
-- `title` חייב להיות string.
-- `title.trim()` לא יכול להיות ריק.
-- `priority` חייב להיות מספר בין `1` ל־`5`.
-- `status` חייב להיות אחד מערכי ה־status המותרים.
-- `tags` חייב להיות מערך.
-
-### ייבוא פריט
-
-- חובה לשלוח `externalId` או `externalItem`.
-- אם ה־API החיצוני נכשל, לא יוצרים פריט מקומי.
-- אם הפריט כבר נשמר לאותו מבקר, יש להחזיר שגיאה מתאימה.
-
-### עדכון פריט
-
-- אי אפשר לעדכן `id`.
-- אי אפשר לעדכן `userId`.
-- אי אפשר לעדכן `createdAt`.
-- אם `status` לא תקין, מחזירים `400`.
-- אם `priority` לא תקין, מחזירים `400`.
-
----
-
-## מבנה תשובות JSON
-
-### הצלחה
-
-כל תשובת הצלחה צריכה להיות במבנה ברור, לדוגמה:
-
-```json
-{
-  "success": true,
-  "data": {}
-}
-```
-
-אפשר להוסיף גם `message` כאשר מתאים.
-
-### שגיאה
-
-כל תשובת שגיאה צריכה להיות במבנה ברור, לדוגמה:
-
-```json
-{
-  "success": false,
-  "message": "Error message"
-}
-```
-
----
-
-## Status Codes
-
-יש להשתמש ב־status codes מתאימים:
-
-- `200` עבור קריאה, עדכון או מחיקה שהצליחו.
-- `201` עבור יצירת פריט חדש.
-- `400` עבור בקשה לא תקינה.
-- `404` עבור נתיב או פריט שלא נמצא.
-- `409` עבור כפילות, אם מנסים לשמור אותו פריט חיצוני פעמיים.
-- `500` עבור שגיאה פנימית לא צפויה.
-- `502` עבור כשל בקריאה ל־API חיצוני, אם מתאים.
-
----
-
-## סטטיסטיקות
-
-הנתיב:
-
-```txt
-GET /stats
-```
-
-צריך להחזיר סטטיסטיקות על הפריטים של המבקר הנוכחי בלבד.
-
-הסטטיסטיקות צריכות לכלול:
-
-- `totalItems`
-- `itemsByStatus`
-- `itemsByPriority`
-- `mostUsedTag`
-- `averagePriority`
-- `newestItem`
-- `oldestItem`
-
----
-
-## לוגים
-
-השרת צריך להדפיס לוגים ברורים לטרמינל.
-
-לוגים נדרשים:
-
-- מתי השרת עלה.
-- כל בקשה שנכנסת.
-- `method`
-- `path`
-- `status code`
-- חיפוש מול API חיצוני.
-- שגיאות.
-
----
-
-## חלוקה לקבצים
-
-אין לכתוב את כל הפרויקט בקובץ אחד.
-
-הפרויקט צריך להיות מחולק לפי אחריות, למשל:
-
-- קובץ שמפעיל את השרת.
-- קובץ שמגדיר את ה־API שנבחר.
-- רכיב שאחראי על קריאה ל־API החיצוני.
-- רכיב שאחראי על ניהול האוסף המקומי.
-- רכיב שאחראי על קריאה וכתיבה לקובץ.
-- רכיב שאחראי על Cookies.
-- רכיב שאחראי על פענוח בקשות.
-- רכיב שאחראי על תשובות JSON.
-- רכיב שאחראי על סטטיסטיקות.
-- רכיב שאחראי על לוגים.
-
----
-
-## מושגי JavaScript ו־Node.js שצריכים להופיע בפרויקט
-
-הפרויקט צריך לכלול שימוש ב:
-
-- HTTP server עם `node:http`
-- ניתוב ידני לפי `req.url` ו־`req.method`
-- Query params
-- פענוח JSON body מתוך `req`
-- `Callbacks`
-- `Promises`
-- `async/await`
-- `try/catch`
-- `fetch`
-- `fs/promises`
-- ES Modules
-- פונקציות Factory
-- פונקציות רגילות לניהול מודולים
-- Closures
-- Array methods כמו `filter`, `map`, `reduce`, `find`, `some`, `sort`
-
----
+- פענוח URL.
+- פענוח JSON body בעזרת Callbacks ו־Promise.
 
 ## הרצת הפרויקט
 
-הפרויקט צריך לרוץ עם:
-
-```bash
+```powershell
 npm start
 ```
 
-מומלץ שהשרת ירוץ על:
+השרת אמור לרוץ על:
 
 ```txt
 http://localhost:3000
 ```
 
----
-
 ## בדיקות מומלצות
 
-בדקו לפחות את הפעולות הבאות:
+בדיקת שרת:
 
-1. `GET /health`
-2. `GET /`
-3. `GET /api-info`
-4. `GET /external/search?query=...`
-5. `POST /items`
-6. `GET /items`
-7. `GET /items/:id`
-8. `PATCH /items/:id`
-9. `DELETE /items/:id`
-10. `POST /items/import`
-11. `GET /stats`
-12. בקשה לנתיב שלא קיים
-13. שליחת JSON לא תקין
-14. ניסיון ליצור פריט בלי `title`
-15. ניסיון לעדכן `priority` לערך לא תקין
-16. בדיקה ש־Cookie מחזיר רק את הפריטים של אותו מבקר
+```powershell
+curl.exe -i http://localhost:3000/health
+```
 
-אפשר לבדוק עם:
+חיפוש ב־API חיצוני:
 
-- `curl`
-- Postman
-- Insomnia
+```powershell
+curl.exe -i "http://localhost:3000/external/search?query=1"
+```
 
----
+יצירת פריט:
 
-## מה צריך להופיע ב־README של ההגשה
+```powershell
+curl.exe --% -i -X POST http://localhost:3000/items -H "Content-Type: application/json" --data-raw "{\"title\":\"Practice item\",\"description\":\"Created for async practice\",\"status\":\"saved\",\"priority\":3,\"tags\":[\"async\",\"manual\"],\"notes\":\"Testing callbacks and promises\"}"
+```
 
-ב־README של ההגשה שלכם כתבו:
+ייבוא פריט:
 
-- איזה API נבחר.
-- קישור לתיעוד של ה־API שנבחר.
-- איזה סוג מידע ה־API מחזיר.
-- איזה endpoint משמש לחיפוש.
-- איזה endpoint משמש לשליפת פריט בודד, או הסבר שאין endpoint כזה.
-- איך מריצים את הפרויקט.
-- רשימת הנתיבים שהשרת תומך בהם.
-- דוגמאות קצרות לבדיקת הנתיבים המרכזיים.
-- תשובות לשאלות ההגשה.
+```powershell
+curl.exe --% -i -X POST http://localhost:3000/items/import -H "Content-Type: application/json" --data-raw "{\"externalId\":\"1\",\"status\":\"saved\",\"priority\":4,\"tags\":[\"fetch\",\"promise\"],\"notes\":\"Imported from JSONPlaceholder\"}"
+```
 
----
+קריאת כל הפריטים:
+
+```powershell
+curl.exe -i http://localhost:3000/items
+```
+
+עדכון פריט:
+
+```powershell
+curl.exe --% -i -X PATCH http://localhost:3000/items/ITEM-1 -H "Content-Type: application/json" --data-raw "{\"status\":\"done\",\"priority\":5,\"notes\":\"Updated after testing\"}"
+```
+
+מחיקת פריט:
+
+```powershell
+curl.exe -i -X DELETE http://localhost:3000/items/ITEM-1
+```
+
+בדיקות שגיאה:
+
+- שליחת JSON לא תקין צריכה להחזיר שגיאה.
+- יצירת פריט בלי `title` צריכה להחזיר שגיאה.
+- קריאת פריט שלא קיים צריכה להחזיר שגיאה.
 
 ## שאלות להגשה
 
-ענו בקצרה על השאלות הבאות:
+ענו בקצרה:
 
-1. איזה API נבחר?
-2. מה ההבדל בין הדאטה מה־API החיצוני לבין הדאטה המקומי שנשמר בקובץ?
-3. מה ההבדל בין `GET /items` לבין `GET /external/search`?
-4. איפה בפרויקט השתמשתם ב־query params?
-5. איפה בפרויקט השתמשתם ב־body?
-6. למה `req` הוא Stream?
-7. למה הפונקציה שמפענחת JSON body צריכה לעבוד בצורה אסינכרונית?
-8. איפה השתמשתם ב־async/await?
-9. למה חשוב לבדוק `response.ok` אחרי `fetch`?
-10. למה HTTP נחשב Stateless?
-11. איך Cookie עוזר לזהות visitor בין בקשות?
-12. למה אסור להשתמש ב־`readFileSync` בפרויקט הזה?
-13. איזה status code מחזירים כשפריט לא נמצא?
-14. איזה status code מחזירים כשנוצר פריט חדש?
-
----
+1. איפה בפרויקט השתמשתם ב־Callback?
+2. למה `parseJsonBody(req)` מחזירה Promise?
+3. איפה בפרויקט השתמשתם ב־`fetch`?
+4. איפה בפרויקט השתמשתם ב־`await`?
+5. למה צריך `try/catch` בפרויקט?
+6. אילו פעולות בפרויקט הן Non-Blocking?
+7. למה לא משתמשים ב־`readFileSync` ו־`writeFileSync`?
+8. איך Event Loop עוזר לשרת להמשיך לעבוד בזמן שמחכים ל־API או לקובץ?
+9. מה ההבדל בין המידע שמגיע מ־JSONPlaceholder לבין הפריטים שנשמרים בקובץ המקומי?
 
 ## רשימת בדיקה לפני הגשה
 
 - [ ] הפרויקט רץ עם `npm start`.
-- [ ] יש `package.json` עם `"type": "module"`.
-- [ ] אין שימוש ב־Express.
-- [ ] אין UI, HTML או CSS.
-- [ ] נבחר API אחד בלבד מתוך הרשימה המאושרת.
-- [ ] יש חיפוש מול API חיצוני עם `fetch`.
-- [ ] יש נרמול של פריטים חיצוניים.
-- [ ] יש CRUD מלא על פריטים מקומיים.
-- [ ] יש שמירה לקובץ JSON עם `fs/promises`.
-- [ ] יש שימוש ב־Cookies.
-- [ ] יש סינון עם query params.
-- [ ] יש פענוח JSON body.
-- [ ] יש ולידציה.
-- [ ] יש טיפול בשגיאות.
-- [ ] יש status codes נכונים.
-- [ ] יש לוגים ברורים.
-- [ ] יש סטטיסטיקות.
-- [ ] הקוד מחולק למודולים.
+- [ ] יש קריאה חיצונית עם `fetch`.
+- [ ] יש שימוש ב־`async/await`.
+- [ ] יש שימוש ב־`try/catch`.
+- [ ] יש שימוש ב־Callbacks ב־`parseJsonBody`.
+- [ ] יש Promise שמחזיר את תוצאת פענוח ה־body.
+- [ ] יש שמירה לקובץ עם `fs/promises`.
+- [ ] אין שימוש ב־`readFileSync` או `writeFileSync`.
+- [ ] יש יצירת פריט ידני.
+- [ ] יש ייבוא פריט מ־JSONPlaceholder.
+- [ ] יש קריאה, עדכון ומחיקה של פריטים.
+- [ ] יש טיפול ב־JSON לא תקין.
+- [ ] יש ולידציה לשדות המרכזיים.

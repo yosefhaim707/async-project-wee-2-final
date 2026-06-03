@@ -1,5 +1,4 @@
 import { createSavedItem } from "./savedItemFactory.js";
-import { calculateCollectionStats } from "./stats.js";
 
 export function createCollectionManager({
   generateItemId,
@@ -21,7 +20,6 @@ export function createCollectionManager({
     const cleanData = validateItemData(data);
     const item = createSavedItem({
       id: generateItemId(),
-      userId: data.userId,
       sourceApi: "Manual",
       itemType: "manual",
       ...cleanData,
@@ -42,8 +40,7 @@ export function createCollectionManager({
       : await apiClient.getExternalItemById(data.externalId);
 
     const alreadySaved = items.some((item) => (
-      item.userId === data.userId
-      && item.sourceApi === apiConfig.apiName
+      item.sourceApi === apiConfig.apiName
       && item.externalId === externalItem.externalId
     ));
 
@@ -59,7 +56,6 @@ export function createCollectionManager({
 
     const item = createSavedItem({
       id: generateItemId(),
-      userId: data.userId,
       sourceApi: apiConfig.apiName,
       itemType: apiConfig.itemType,
       externalId: externalItem.externalId,
@@ -79,7 +75,6 @@ export function createCollectionManager({
 
   function getAllItems(filters = {}) {
     return items
-      .filter((item) => item.userId === filters.userId)
       .filter((item) => !filters.status || item.status === filters.status)
       .filter((item) => (
         !filters.priority || item.priority === Number(filters.priority)
@@ -106,10 +101,8 @@ export function createCollectionManager({
       });
   }
 
-  function getItemById(itemId, userId) {
-    const item = items.find((savedItem) => (
-      savedItem.id === itemId && savedItem.userId === userId
-    ));
+  function getItemById(itemId) {
+    const item = items.find((savedItem) => savedItem.id === itemId);
 
     if (!item) {
       throw createError(404, "Item not found");
@@ -118,9 +111,9 @@ export function createCollectionManager({
     return item;
   }
 
-  async function updateItem(itemId, updates, userId) {
-    const item = getItemById(itemId, userId);
-    const blockedFields = ["id", "userId", "createdAt"];
+  async function updateItem(itemId, updates) {
+    const item = getItemById(itemId);
+    const blockedFields = ["id", "createdAt"];
     const blockedField = blockedFields.find((field) => field in updates);
 
     if (blockedField) {
@@ -146,7 +139,6 @@ export function createCollectionManager({
     validateItemData({
       ...item,
       ...cleanUpdates,
-      userId,
     });
 
     const updatedItem = {
@@ -156,7 +148,7 @@ export function createCollectionManager({
     };
 
     items = items.map((savedItem) => (
-      savedItem.id === itemId && savedItem.userId === userId
+      savedItem.id === itemId
         ? updatedItem
         : savedItem
     ));
@@ -165,20 +157,13 @@ export function createCollectionManager({
     return updatedItem;
   }
 
-  async function deleteItem(itemId, userId) {
-    const item = getItemById(itemId, userId);
+  async function deleteItem(itemId) {
+    const item = getItemById(itemId);
 
-    items = items.filter((savedItem) => (
-      !(savedItem.id === itemId && savedItem.userId === userId)
-    ));
+    items = items.filter((savedItem) => savedItem.id !== itemId);
 
     await save();
     return item;
-  }
-
-  function getStats(userId) {
-    const visitorItems = items.filter((item) => item.userId === userId);
-    return calculateCollectionStats(visitorItems);
   }
 
   function validateItemData(data) {
@@ -300,6 +285,5 @@ export function createCollectionManager({
     getItemById,
     updateItem,
     deleteItem,
-    getStats,
   };
 }
