@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ITEM-1",
+    "userId": "VIS-1",
+    "sourceApi": "Manual",
+    "itemType": "manual",
+    "externalId": null,
+    "title": "פריט בדיקה",
+    "description": "נוצר לבדיקה",
+    "status": "saved",
+    "priority": 3,
+    "tags": [
+      "test"
+    ],
+    "notes": "בדיקה",
+    "rawData": {},
+    "createdAt": "2026-05-28T20:34:41.406Z",
+    "updatedAt": "2026-05-28T20:34:41.406Z"
+  }
+]

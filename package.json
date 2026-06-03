@@ -1,0 +1,17 @@
+{
+  "name": "public-api-crud-hub-week-two-training",
+  "version": "1.0.0",
+  "description": "Vanilla Node.js CRUD hub for one approved public API.",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "keywords": [
+    "node",
+    "http",
+    "crud",
+    "fetch"
+  ],
+  "license": "ISC"
+}
