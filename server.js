@@ -1,6 +1,6 @@
 import http from "node:http";
-import { ApiClient } from "./modules/ApiClient.js";
-import { CollectionManager } from "./modules/CollectionManager.js";
+import { createApiClient } from "./modules/ApiClient.js";
+import { createCollectionManager } from "./modules/CollectionManager.js";
 import { apiConfig, savedItemsFilePath } from "./modules/config.js";
 import { getOrCreateVisitorId } from "./modules/cookieUtils.js";
 import { createFileStorage } from "./modules/fileStorage.js";
@@ -64,8 +64,8 @@ export async function startServer(port = 3000) {
     getHighestIdNumber(existingItems, "userId", "VIS"),
   );
 
-  const apiClient = new ApiClient(apiConfig);
-  const collectionManager = new CollectionManager({
+  const apiClient = createApiClient(apiConfig);
+  const collectionManager = createCollectionManager({
     apiClient,
     apiConfig,
     generateItemId,

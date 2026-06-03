@@ -401,7 +401,7 @@ GET /stats
 - `fs/promises`
 - ES Modules
 - פונקציות Factory
-- Classes
+- פונקציות רגילות לניהול מודולים
 - Closures
 - Array methods כמו `filter`, `map`, `reduce`, `find`, `some`, `sort`
 
