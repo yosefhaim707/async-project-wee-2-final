@@ -65,7 +65,7 @@
 11. [נתיבי HTTP](#נתיבי-http)
 12. [דרישות CRUD](#דרישות-crud)
 13. [חיבור ל־API חיצוני](#חיבור-לapi-חיצוני)
-14. [מחלקת `CollectionManager`](#מחלקת-collectionmanager)
+14. [מודול `CollectionManager`](#מודול-collectionmanager)
 15. [מערכת שמירה לקובץ](#מערכת-שמירה-לקובץ)
 16. [Cookies ו־Statelessness](#cookies-וstatelessness)
 17. [מערכת סטטיסטיקות](#מערכת-סטטיסטיקות)
@@ -110,7 +110,7 @@
 
 - ES Modules
 - פונקציות Factory
-- קלאסים
+- פונקציות רגילות לניהול מודולים
 - Closures
 - מערכים
 - מתודות מערך
@@ -210,7 +210,7 @@
 - מחזיר מידע טקסטואלי או מידע שקל להפוך לטקסט.
 - מאפשר לבנות סביבו אוסף מקומי עם CRUD.
 
-בכל מימוש צריך לממש ב־`ApiClient`:
+בכל מימוש צריך לממש במודול של ה־API החיצוני:
 
 ```js
 searchExternalItems(query);
@@ -723,7 +723,7 @@ import * as http from "node:http";
 - לזהות את ה־route לפי `req.url` ו־`req.method`.
 - לקרוא query params.
 - לקרוא body בבקשות שדורשות body.
-- לקרוא לפונקציות של `CollectionManager`.
+- לקרוא לפונקציות של `collectionManager`.
 - להחזיר תשובת JSON.
 - להחזיר `404` אם אין route מתאים.
 
@@ -884,25 +884,27 @@ export function createApiResult({
 
 התפקיד שלו הוא לדבר עם ה־API החיצוני.
 
-הוא צריך לכלול class:
+הוא צריך לייצא פונקציית Factory בשם `createApiClient`.
 
 ```js
-export class ApiClient {
-  constructor(apiConfig) {
-    this.apiConfig = apiConfig;
-  }
-
-  async searchExternalItems(query) {
+export function createApiClient(apiConfig) {
+  async function searchExternalItems(query) {
     // קריאה ל־API החיצוני
   }
 
-  async getExternalItemById(externalId) {
+  async function getExternalItemById(externalId) {
     // שליפת פריט אחד לפי ID, אם ה־API שנבחר תומך בזה
   }
 
-  normalizeExternalItem(rawItem) {
+  function normalizeExternalItem(rawItem) {
     // המרת הדאטה הגולמי מה־API למבנה של createApiResult
   }
+
+  return {
+    searchExternalItems,
+    getExternalItemById,
+    normalizeExternalItem,
+  };
 }
 ```
 
@@ -919,32 +921,39 @@ export class ApiClient {
 
 ### `modules/CollectionManager.js`
 
-זה הקלאס המרכזי של המערכת.
+זה מודול ניהול האוסף המרכזי של המערכת.
 
 הוא מנהל את כל הפריטים המקומיים.
 
 ```js
-export class CollectionManager {
-  constructor({ generateItemId, storage, apiClient }) {
-    this.items = [];
-    this.generateItemId = generateItemId;
-    this.storage = storage;
-    this.apiClient = apiClient;
-  }
+export function createCollectionManager({ generateItemId, storage, apiClient, apiConfig }) {
+  let items = [];
 
-  async load() {}
-  async save() {}
-  async createItem(data) {}
-  async importItemFromExternalApi(data) {}
-  getAllItems(filters = {}) {}
-  getItemById(itemId) {}
-  async updateItem(itemId, updates) {}
-  async deleteItem(itemId) {}
-  getStats() {}
+  async function load() {}
+  async function save() {}
+  async function createItem(data) {}
+  async function importItemFromExternalApi(data) {}
+  function getAllItems(filters = {}) {}
+  function getItemById(itemId) {}
+  async function updateItem(itemId, updates) {}
+  async function deleteItem(itemId) {}
+  function getStats() {}
+
+  return {
+    load,
+    save,
+    createItem,
+    importItemFromExternalApi,
+    getAllItems,
+    getItemById,
+    updateItem,
+    deleteItem,
+    getStats,
+  };
 }
 ```
 
-ה־Manager לא אמור להכיר את `req` ו־`res`.
+מנהל האוסף לא אמור להכיר את `req` ו־`res`.
 
 הוא מקבל דאטה רגיל ומחזיר דאטה רגיל.
 
@@ -1256,7 +1265,7 @@ GET /external/search?query=1
 השרת:
 
 1. קורא query param בשם `query`.
-2. קורא ל־`ApiClient.searchExternalItems(query)`.
+2. קורא ל־`apiClient.searchExternalItems(query)`.
 3. מחזיר תוצאות JSON.
 4. מדפיס לוג בטרמינל.
 
@@ -1788,55 +1797,63 @@ External API = מקור קריאה בלבד
 
 ---
 
-## מחלקת `CollectionManager`
+## מודול `CollectionManager`
 
 `CollectionManager` הוא הלב של הפרויקט.
 
 הוא צריך לנהל את המערך:
 
 ```js
-this.items = [];
+let items = [];
 ```
 
-### ה־`constructor`
+### יצירת מנהל האוסף
 
 ```js
-constructor({ generateItemId, generateVisitorId, storage, apiClient }) {
-  this.items = [];
-  this.generateItemId = generateItemId;
-  this.generateVisitorId = generateVisitorId;
-  this.storage = storage;
-  this.apiClient = apiClient;
+function createCollectionManager({ generateItemId, storage, apiClient, apiConfig }) {
+  let items = [];
+
+  return {
+    load,
+    save,
+    createItem,
+    importItemFromExternalApi,
+    getAllItems,
+    getItemById,
+    updateItem,
+    deleteItem,
+    getStats,
+  };
 }
 ```
 
 ---
 
-### המתודה `load()`
+### הפונקציה `load()`
 
 טוען את הפריטים מהקובץ.
 
 ```js
-async load() {
-  this.items = await this.storage.read();
+async function load() {
+  items = await storage.read();
 }
 ```
 
 ---
 
-### המתודה `save()`
+### הפונקציה `save()`
 
 שומר את המערך לקובץ.
 
 ```js
-async save() {
-  await this.storage.write(this.items);
+async function save() {
+  await storage.write(items);
 }
 ```
 
 ---
 
-### המתודה `createItem(data)`
+### הפונקציה `createItem(data)`
 
 יוצר פריט מקומי חדש.
 
@@ -1849,7 +1866,7 @@ async save() {
 
 ---
 
-### המתודה `importItemFromExternalApi(data)`
+### הפונקציה `importItemFromExternalApi(data)`
 
 יוצר פריט מתוך API חיצוני.
 
@@ -1869,7 +1886,7 @@ async save() {
 
 ---
 
-### המתודה `getAllItems(filters = {})`
+### הפונקציה `getAllItems(filters = {})`
 
 מחזיר פריטים לפי סינונים (`filters`).
 
@@ -1893,7 +1910,7 @@ async save() {
 
 ---
 
-### המתודה `getItemById(itemId)`
+### הפונקציה `getItemById(itemId)`
 
 מחזיר פריט לפי ID.
 
@@ -1905,7 +1922,7 @@ find();
 
 ---
 
-### המתודה `updateItem(itemId, updates)`
+### הפונקציה `updateItem(itemId, updates)`
 
 מעדכן פריט קיים.
 
@@ -1917,7 +1934,7 @@ updatedAt: new Date().toISOString();
 
 ---
 
-### המתודה `deleteItem(itemId)`
+### הפונקציה `deleteItem(itemId)`
 
 מוחק פריט.
 
@@ -1940,7 +1957,7 @@ updatedAt: new Date().toISOString();
 
 ---
 
-### המתודה `getStats()`
+### הפונקציה `getStats()`
 
 מחזיר סטטיסטיקות בעזרת `calculateCollectionStats`.
 
@@ -2318,15 +2335,15 @@ await ממשיך את הפונקציה
 
 ---
 
-### קלאסים
+### מודולים ופונקציות רגילות
 
-`CollectionManager` ו־`ApiClient` צריכים להיות קלאסים (`classes`).
+מודולי הניהול צריכים להיות בנויים מפונקציות רגילות, אובייקטים פשוטים ו־state מקומי לפי הצורך.
 
 ---
 
 ### פונקציות Factory
 
-`createSavedItem` ו־`createApiResult` צריכים להיות פונקציות Factory.
+`createSavedItem`, `createApiResult`, `createApiClient` ו־`createCollectionManager` צריכים להיות פונקציות Factory.
 
 ---
 
@@ -2425,21 +2442,29 @@ writeJsonFile(filePath, data);
 
 ---
 
-### משימה 7 — מימוש `ApiClient`
+### משימה 7 — מימוש `createApiClient`
 
 ממשו:
 
 ```js
-searchExternalItems(query);
-getExternalItemById(externalId);
-normalizeExternalItem(rawItem);
+function createApiClient(apiConfig) {
+  async function searchExternalItems(query) {}
+  async function getExternalItemById(externalId) {}
+  function normalizeExternalItem(rawItem) {}
+
+  return {
+    searchExternalItems,
+    getExternalItemById,
+    normalizeExternalItem,
+  };
+}
 ```
 
 אם ה־API לא תומך ב־`get by id`, הסבירו זאת ב־README וממשו import מתוך `externalItem` מלא.
 
 ---
 
-### משימה 8 — מימוש `CollectionManager`
+### משימה 8 — מימוש `createCollectionManager`
 
 ממשו CRUD מלא:
 
@@ -2679,7 +2704,7 @@ curl -i http://localhost:3000/stats \
 - [ ] אין שימוש ב־Express.
 - [ ] אין UI ואין HTML/CSS.
 - [ ] יש API חיצוני שנבחר מתוך חמשת ה־APIs המאושרים בלבד.
-- [ ] יש `ApiClient` עם `fetch`.
+- [ ] יש `createApiClient` עם `fetch`.
 - [ ] יש CRUD מלא.
 - [ ] יש `GET /`.
 - [ ] יש `GET /external/search`.

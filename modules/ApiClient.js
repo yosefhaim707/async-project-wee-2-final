@@ -1,19 +1,15 @@
 import { createApiResult } from "./apiResultFactory.js";
 
-export class ApiClient {
-  constructor(apiConfig) {
-    this.apiConfig = apiConfig;
-  }
-
-  async searchExternalItems(query) {
+export function createApiClient(apiConfig) {
+  async function searchExternalItems(query) {
     const cleanQuery = String(query ?? "").trim();
 
     if (!cleanQuery) {
-      throw this.createError(400, "query is required");
+      throw createError(400, "query is required");
     }
 
     try {
-      const url = new URL(`${this.apiConfig.baseUrl}${this.apiConfig.searchPath}`);
+      const url = new URL(`${apiConfig.baseUrl}${apiConfig.searchPath}`);
 
       if (/^\d+$/.test(cleanQuery)) {
         url.searchParams.set("userId", cleanQuery);
@@ -22,69 +18,69 @@ export class ApiClient {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw this.createError(response.status, "External API search failed");
+        throw createError(response.status, "External API search failed");
       }
 
       const posts = await response.json();
       const results = /^\d+$/.test(cleanQuery)
         ? posts
-        : posts.filter((post) => this.postMatchesQuery(post, cleanQuery));
+        : posts.filter((post) => postMatchesQuery(post, cleanQuery));
 
       return results
-        .slice(0, this.apiConfig.maxSearchResults)
-        .map((post) => this.normalizeExternalItem(post));
+        .slice(0, apiConfig.maxSearchResults)
+        .map((post) => normalizeExternalItem(post));
     } catch (error) {
       if (error.statusCode) {
         throw error;
       }
 
-      throw this.createError(502, `External API error: ${error.message}`);
+      throw createError(502, `External API error: ${error.message}`);
     }
   }
 
-  async getExternalItemById(externalId) {
+  async function getExternalItemById(externalId) {
     const cleanExternalId = String(externalId ?? "").trim();
 
     if (!cleanExternalId) {
-      throw this.createError(400, "externalId is required");
+      throw createError(400, "externalId is required");
     }
 
     try {
       const safeId = encodeURIComponent(cleanExternalId);
-      const url = `${this.apiConfig.baseUrl}${this.apiConfig.itemPath}/${safeId}`;
+      const url = `${apiConfig.baseUrl}${apiConfig.itemPath}/${safeId}`;
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw this.createError(response.status, "External item was not found");
+        throw createError(response.status, "External item was not found");
       }
 
       const post = await response.json();
 
       if (!post.id) {
-        throw this.createError(404, "External item was not found");
+        throw createError(404, "External item was not found");
       }
 
-      return this.normalizeExternalItem(post);
+      return normalizeExternalItem(post);
     } catch (error) {
       if (error.statusCode) {
         throw error;
       }
 
-      throw this.createError(502, `External API error: ${error.message}`);
+      throw createError(502, `External API error: ${error.message}`);
     }
   }
 
-  normalizeExternalItem(post) {
+  function normalizeExternalItem(post) {
     return createApiResult({
       externalId: String(post.id),
       title: post.title,
       description: post.body,
-      sourceUrl: `${this.apiConfig.baseUrl}${this.apiConfig.itemPath}/${post.id}`,
+      sourceUrl: `${apiConfig.baseUrl}${apiConfig.itemPath}/${post.id}`,
       rawData: post,
     });
   }
 
-  postMatchesQuery(post, query) {
+  function postMatchesQuery(post, query) {
     const lowerQuery = query.toLowerCase();
     const searchableText = [
       post.id,
@@ -98,9 +94,15 @@ export class ApiClient {
     return searchableText.includes(lowerQuery);
   }
 
-  createError(statusCode, message) {
+  function createError(statusCode, message) {
     const error = new Error(message);
     error.statusCode = statusCode;
     return error;
   }
+
+  return {
+    searchExternalItems,
+    getExternalItemById,
+    normalizeExternalItem,
+  };
 }
