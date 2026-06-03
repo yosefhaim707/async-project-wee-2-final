@@ -2730,4 +2730,4 @@ curl -i http://localhost:3000/stats \
 
 ## קישור לריפו
 
-[yosefhaim707/async-project-week-2](https://github.com/yosefhaim707/async-project-week-2)
+[yosefhaim707/async-project-wee-2-final](https://github.com/yosefhaim707/async-project-wee-2-final)
