@@ -1,7 +1,7 @@
 {
   "name": "public-api-crud-hub-week-two-training",
   "version": "1.0.0",
-  "description": "Vanilla Node.js CRUD hub for one approved public API.",
+  "description": "Vanilla Node.js async practice project using fetch and fs/promises.",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -10,8 +10,9 @@
   "keywords": [
     "node",
     "http",
-    "crud",
-    "fetch"
+    "fetch",
+    "async",
+    "promises"
   ],
   "license": "ISC"
 }

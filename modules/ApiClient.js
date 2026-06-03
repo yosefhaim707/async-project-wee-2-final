@@ -10,11 +10,6 @@ export function createApiClient(apiConfig) {
 
     try {
       const url = new URL(`${apiConfig.baseUrl}${apiConfig.searchPath}`);
-
-      if (/^\d+$/.test(cleanQuery)) {
-        url.searchParams.set("userId", cleanQuery);
-      }
-
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -22,9 +17,7 @@ export function createApiClient(apiConfig) {
       }
 
       const posts = await response.json();
-      const results = /^\d+$/.test(cleanQuery)
-        ? posts
-        : posts.filter((post) => postMatchesQuery(post, cleanQuery));
+      const results = posts.filter((post) => postMatchesQuery(post, cleanQuery));
 
       return results
         .slice(0, apiConfig.maxSearchResults)
@@ -84,7 +77,6 @@ export function createApiClient(apiConfig) {
     const lowerQuery = query.toLowerCase();
     const searchableText = [
       post.id,
-      post.userId,
       post.title,
       post.body,
     ]

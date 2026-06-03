@@ -1,6 +1,5 @@
 export function createSavedItem({
   id,
-  userId,
   sourceApi,
   itemType,
   externalId = null,
@@ -16,7 +15,6 @@ export function createSavedItem({
 
   return {
     id,
-    userId,
     sourceApi,
     itemType,
     externalId,
