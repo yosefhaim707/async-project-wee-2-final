@@ -1,20 +1,10 @@
 # פרויקט תרגול Async JavaScript
 
-`public-api-crud-hub-week-two-training` הוא פרויקט Node.js קטן לתרגול הנושאים שנלמדים במצגות:
+`public-api-crud-hub-week-two-training` הוא שרת Node.js קטן שמנהל פריטים מקומיים, קורא מידע מ־JSONPlaceholder ושומר נתונים בקובץ JSON.
 
-- Single Thread
-- Call Stack
-- Event Loop
-- Blocking ו־Non-Blocking
-- Callbacks
-- Promises
-- `fetch`
-- `async/await`
-- `try/catch`
+הקוד משתמש ב־`fetch`, `fs/promises`, Callbacks, Promises, `async/await` ו־`try/catch`.
 
-הפרויקט מפעיל שרת Node.js פשוט, קורא מידע מ־JSONPlaceholder בעזרת `fetch`, ושומר פריטים מקומיים בקובץ JSON בעזרת `fs/promises`.
-
-## מה הפרויקט עושה
+## פונקציונליות
 
 - מפעיל שרת עם `node:http`.
 - קורא פוסטים מ־JSONPlaceholder.
@@ -26,72 +16,6 @@
 - משתמש ב־Promise כדי לעטוף את קריאת ה־body.
 - משתמש ב־`async/await` ו־`try/catch` בקריאות API, קבצים ונתיבי שרת.
 - נמנע מפעולות קובץ Blocking כמו `readFileSync` ו־`writeFileSync`.
-
-## נושאי התרגול בקוד
-
-### Single Thread ו־Event Loop
-
-JavaScript מריץ קוד על thread אחד. לכן פעולות שיכולות לקחת זמן, כמו בקשת API או קריאת קובץ, נכתבות בצורה אסינכרונית.
-
-בפרויקט רואים את זה בעיקר ב:
-
-- `fetch` מול JSONPlaceholder.
-- `fs/promises` לקריאה וכתיבה לקובץ.
-- `parseJsonBody(req)` שמחכה ל־body בלי לעצור את השרת.
-
-### Blocking ו־Non-Blocking
-
-הפרויקט משתמש בפעולות Non-Blocking:
-
-```js
-await fetch(url);
-await storage.read();
-await storage.write(items);
-```
-
-אין להשתמש בפעולות Blocking:
-
-```js
-readFileSync;
-writeFileSync;
-```
-
-### Callbacks
-
-בקובץ `modules/requestUtils.js`, הפונקציה `parseJsonBody(req)` משתמשת ב־Callbacks של Stream:
-
-```js
-req.on("data", callback);
-req.on("end", callback);
-req.on("error", callback);
-```
-
-זה תרגול ישיר לרעיון של Callback: פונקציה שנשלחת כפרמטר ורצה כשהפעולה מסתיימת.
-
-### Promises
-
-`parseJsonBody(req)` מחזירה Promise:
-
-```js
-return new Promise((resolve, reject) => {
-  // callbacks call resolve or reject
-});
-```
-
-גם `fetch`, `response.json()` ו־`fs/promises` מחזירים Promises.
-
-### async/await ו־try/catch
-
-השרת משתמש ב־`async/await` כדי שהקוד יהיה קריא מלמעלה למטה:
-
-```js
-try {
-  const results = await apiClient.searchExternalItems(searchQuery);
-  sendJson(res, 200, { success: true, data: results });
-} catch (error) {
-  sendError(res, error.statusCode ?? 500, error.message);
-}
-```
 
 ## הרצת הפרויקט
 
@@ -137,50 +61,6 @@ public-api-crud-hub-week-two-training/
     ├── responseUtils.js
     └── savedItemFactory.js
 ```
-
-## תפקידי הקבצים
-
-### `main.js`
-
-נקודת הכניסה של הפרויקט. מפעיל את השרת.
-
-### `server.js`
-
-מגדיר את שרת ה־HTTP, קורא את הנתיבים, מפעיל את פעולות ה־async ומחזיר JSON.
-
-### `modules/ApiClient.js`
-
-מכיל את `createApiClient(apiConfig)`.
-
-התפקיד שלו:
-
-- לבנות URL ל־JSONPlaceholder.
-- לקרוא ל־API עם `fetch`.
-- לבדוק `response.ok`.
-- לקרוא `await response.json()`.
-- לנרמל פוסט חיצוני למבנה אחיד.
-
-### `modules/CollectionManager.js`
-
-מכיל את `createCollectionManager(...)`.
-
-התפקיד שלו:
-
-- לטעון פריטים מקובץ.
-- לשמור פריטים לקובץ.
-- ליצור פריט ידני.
-- לייבא פריט מ־API חיצוני.
-- לקרוא פריטים.
-- לעדכן פריט.
-- למחוק פריט.
-
-### `modules/fileStorage.js`
-
-מכיל פעולות קובץ אסינכרוניות עם `fs/promises`.
-
-### `modules/requestUtils.js`
-
-מכיל פענוח URL ופענוח JSON body בעזרת Callbacks ו־Promise.
 
 ## API חיצוני
 
@@ -291,17 +171,6 @@ curl.exe -i -X DELETE http://localhost:3000/items/ITEM-1
 8. `DELETE /items/:id`
 9. שליחת JSON לא תקין ובדיקה שמתקבלת שגיאה
 10. יצירת פריט בלי `title` ובדיקה שמתקבלת שגיאה
-
-## שאלות להבנה
-
-1. איפה בפרויקט מופיעים Callbacks?
-2. למה `parseJsonBody(req)` מחזירה Promise?
-3. אילו פעולות בפרויקט הן Non-Blocking?
-4. איפה משתמשים ב־`await`?
-5. למה צריך `try/catch` סביב פעולות אסינכרוניות?
-6. מה ההבדל בין המידע שחוזר מ־JSONPlaceholder לבין הפריטים שנשמרים בקובץ?
-7. למה לא משתמשים ב־`readFileSync` ו־`writeFileSync`?
-8. איך Event Loop מאפשר לשרת להמשיך לקבל בקשות בזמן שמחכים ל־API או לקובץ?
 
 ## קישור לריפו
 

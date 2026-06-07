@@ -1,22 +1,12 @@
 # הנחיות תלמידים: פרויקט תרגול Async JavaScript
 
-## מטרת הפרויקט
+## המשימה
 
-בפרויקט הזה תבנו שרת Node.js קטן שמתרגל את הנושאים שנלמדו במצגות:
+בפרויקט הזה תבנו שרת Node.js קטן עם קריאה ל־JSONPlaceholder, שמירה לקובץ JSON ונתיבי CRUD מקומיים.
 
-- Single Thread
-- Call Stack
-- Event Loop
-- Blocking ו־Non-Blocking
-- Callbacks
-- Promises
-- `fetch`
-- `async/await`
-- `try/catch`
+הקוד צריך להשתמש ב־Callbacks, Promises, `fetch`, `async/await`, `try/catch` ופעולות קובץ לא חוסמות.
 
-המטרה היא להבין איך JavaScript מטפל בפעולות שלוקחות זמן בלי לעצור את כל הקוד.
-
-## מה צריך לבנות
+## תוצר נדרש
 
 שרת Node.js שמבצע שלושה דברים מרכזיים:
 
@@ -26,7 +16,7 @@
 
 הפרויקט הוא Backend בלבד ונבדק דרך `curl`, Postman או Insomnia.
 
-## נושאי חובה בקוד
+## דרישות קוד
 
 ### Callbacks
 
@@ -258,20 +248,6 @@ curl.exe -i -X DELETE http://localhost:3000/items/ITEM-1
 - שליחת JSON לא תקין צריכה להחזיר שגיאה.
 - יצירת פריט בלי `title` צריכה להחזיר שגיאה.
 - קריאת פריט שלא קיים צריכה להחזיר שגיאה.
-
-## שאלות להגשה
-
-ענו בקצרה:
-
-1. איפה בפרויקט השתמשתם ב־Callback?
-2. למה `parseJsonBody(req)` מחזירה Promise?
-3. איפה בפרויקט השתמשתם ב־`fetch`?
-4. איפה בפרויקט השתמשתם ב־`await`?
-5. למה צריך `try/catch` בפרויקט?
-6. אילו פעולות בפרויקט הן Non-Blocking?
-7. למה לא משתמשים ב־`readFileSync` ו־`writeFileSync`?
-8. איך Event Loop עוזר לשרת להמשיך לעבוד בזמן שמחכים ל־API או לקובץ?
-9. מה ההבדל בין המידע שמגיע מ־JSONPlaceholder לבין הפריטים שנשמרים בקובץ המקומי?
 
 ## רשימת בדיקה לפני הגשה
 
